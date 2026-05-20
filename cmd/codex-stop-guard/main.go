@@ -28,7 +28,7 @@ const (
 var (
 	openItemRE    = regexp.MustCompile(`(?m)^\s*[-*]\s*\[( |>)\]\s+(.+)$`)
 	finalStatusRE = regexp.MustCompile(`(?i)final status\s*[:：]\s*(\S+)`)
-	planRefRE     = regexp.MustCompile(`(?i)(?P<path>(?:[A-Za-z]:)?[^\s\x60'\"]*?\.codex/plans/(?P<slug1>[a-z0-9][a-z0-9-]*)\.md)|(?P<rel>plans/(?P<slug2>[a-z0-9][a-z0-9-]*)\.md)|#\s*Plan:\s*(?P<slug3>[a-z0-9][a-z0-9-]*)`)
+	planRefRE     = regexp.MustCompile(`(?i)(?P<path>(?:[A-Za-z]:)?[^\s\x60'\"]*?\.codex[/\\]plans[/\\](?P<slug1>[a-z0-9][a-z0-9-]*)\.md)|(?P<rel>plans[/\\](?P<slug2>[a-z0-9][a-z0-9-]*)\.md)|#\s*Plan:\s*(?P<slug3>[a-z0-9][a-z0-9-]*)`)
 )
 
 func main() {
@@ -481,6 +481,7 @@ func resolvePlanPath(cwd, transcriptPlanPath, transcriptSlug string) (string, er
 	for _, dir := range planDirs {
 		allowed[dir] = struct{}{}
 	}
+	transcriptPlanPath = normalizePlanRefPath(transcriptPlanPath)
 	if transcriptPlanPath != "" {
 		candidates := []string{transcriptPlanPath}
 		if !filepath.IsAbs(transcriptPlanPath) {
@@ -507,6 +508,11 @@ func resolvePlanPath(cwd, transcriptPlanPath, transcriptSlug string) (string, er
 		}
 	}
 	return "", nil
+}
+
+func normalizePlanRefPath(path string) string {
+	path = filepath.FromSlash(path)
+	return strings.ReplaceAll(path, "\\", string(os.PathSeparator))
 }
 
 func planDirsFor(cwd string) []string {

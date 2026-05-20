@@ -32,6 +32,29 @@ func TestStopGuardBlocksWhenOpenPlanExists(t *testing.T) {
 	assertStopGuardBlocks(t, tempDir, transcriptPath)
 }
 
+func TestStopGuardBlocksWhenOnlyWindowsBackslashPlanPathExists(t *testing.T) {
+	tempDir := t.TempDir()
+	planName := "2026-05-20T15-10-00-windows-path-plan.md"
+	_ = writeOpenPlan(t, tempDir, planName, `
+# Plan: 2026-05-20T15-10-00-windows-path-plan
+
+## Meta
+- status: in_progress
+
+## Milestones
+- [>] M1. 支持 Windows 反斜杠路径
+`)
+	transcriptPath := filepath.Join(tempDir, "transcript.jsonl")
+	writeTranscriptLine(t, transcriptPath, map[string]any{
+		"type": "response_item",
+		"payload": map[string]any{
+			"role":    "assistant",
+			"content": []map[string]any{{"text": `C:\Users\faceair\Developer\my-codex\.codex\plans\` + planName}},
+		},
+	})
+	assertStopGuardBlocks(t, tempDir, transcriptPath)
+}
+
 func TestStopGuardBlocksAfterLargeCompactedLineAndLargeSessionMeta(t *testing.T) {
 	tempDir := t.TempDir()
 	planPath := writeOpenPlan(t, tempDir, "2026-04-26T23-15-20-register-flow-with-icloud-and-historical-cleanup.md", `
