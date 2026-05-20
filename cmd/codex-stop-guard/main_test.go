@@ -55,6 +55,28 @@ func TestStopGuardBlocksWhenOnlyWindowsBackslashPlanPathExists(t *testing.T) {
 	assertStopGuardBlocks(t, tempDir, transcriptPath)
 }
 
+func TestStopGuardBlocksWhenPlanFilenameHasTimezoneSuffix(t *testing.T) {
+	tempDir := t.TempDir()
+	planPath := writeOpenPlan(t, tempDir, "2026-05-20T23-44-32+0800-gvisor-dataplane-rss-master-plan.md", `
+# Plan: 2026-05-20T23-44-32+0800-gvisor-dataplane-rss-master-plan
+
+## Meta
+- status: in_progress
+
+## Milestones
+- [>] M2. 收口当前观测变更并建立 router 基线
+`)
+	transcriptPath := filepath.Join(tempDir, "transcript.jsonl")
+	writeTranscriptLine(t, transcriptPath, map[string]any{
+		"type": "response_item",
+		"payload": map[string]any{
+			"role":    "assistant",
+			"content": []map[string]any{{"text": planPath}},
+		},
+	})
+	assertStopGuardBlocks(t, tempDir, transcriptPath)
+}
+
 func TestStopGuardBlocksAfterLargeCompactedLineAndLargeSessionMeta(t *testing.T) {
 	tempDir := t.TempDir()
 	planPath := writeOpenPlan(t, tempDir, "2026-04-26T23-15-20-register-flow-with-icloud-and-historical-cleanup.md", `

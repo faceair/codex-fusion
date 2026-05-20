@@ -28,7 +28,7 @@ const (
 var (
 	openItemRE    = regexp.MustCompile(`(?m)^\s*[-*]\s*\[( |>)\]\s+(.+)$`)
 	finalStatusRE = regexp.MustCompile(`(?i)final status\s*[:：]\s*(\S+)`)
-	planRefRE     = regexp.MustCompile(`(?i)(?P<path>(?:[A-Za-z]:)?[^\s\x60'\"]*?\.codex[/\\]plans[/\\](?P<slug1>[a-z0-9][a-z0-9-]*)\.md)|(?P<rel>plans[/\\](?P<slug2>[a-z0-9][a-z0-9-]*)\.md)|#\s*Plan:\s*(?P<slug3>[a-z0-9][a-z0-9-]*)`)
+	planRefRE     = regexp.MustCompile(`(?i)(?P<path>(?:[A-Za-z]:)?[^\s\x60'\"]*?\.codex[/\\]plans[/\\][^\s\x60'\"]+?\.md)|(?P<rel>plans[/\\][^\s\x60'\"]+?\.md)|#\s*Plan:\s*(?P<slug>[^\s\x60'\"]+)`)
 )
 
 func main() {
@@ -414,17 +414,25 @@ func latestPlanRefFromText(text string) (string, string, bool) {
 		}
 		values[name] = match[index]
 	}
-	slug := values["slug1"]
-	if slug == "" {
-		slug = values["slug2"]
+	path := values["path"]
+	if path == "" {
+		path = values["rel"]
 	}
-	if slug == "" {
-		slug = values["slug3"]
+	slug := stripPlanExtension(values["slug"])
+	if slug == "" && path != "" {
+		slug = stripPlanExtension(filepath.Base(normalizePlanRefPath(path)))
 	}
-	if slug == "" {
+	if path == "" && slug == "" {
 		return "", "", false
 	}
-	return values["path"], slug, true
+	return path, slug, true
+}
+
+func stripPlanExtension(name string) string {
+	if strings.EqualFold(filepath.Ext(name), ".md") {
+		return name[:len(name)-len(filepath.Ext(name))]
+	}
+	return name
 }
 
 func reverseScanJSONLLines(path string, visit func([]byte) bool) error {
