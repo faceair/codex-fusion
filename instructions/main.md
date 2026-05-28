@@ -102,8 +102,6 @@ Create and maintain one task-local execution record in `./.codex/plans` for ever
 
 Use an execution record when the task is long-horizon, cross-turn, multi-milestone, high-risk, materially ambiguous, or likely to require context recovery. Do not create one for trivial, local, single-turn work that can be executed and verified without coordination overhead.
 
-## Thread Goal Continuation
-
 When you create a new non-trivial execution record, immediately call `get_goal`; if there is no active thread goal, call `create_goal` with a concise objective that points to the plan file. The goal objective should say to complete that execution record and read/update it before each continuation.
 
 The thread goal owns automatic continuation. The plan file owns detailed state: milestones, evidence, reviewer history, decisions, final outcome, and blockers. Before calling `update_goal`, update the plan file so its final status matches the goal status.
