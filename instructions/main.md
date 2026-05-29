@@ -119,6 +119,7 @@ Record rules:
 - If later work naturally continues the same end-state, extend the current record instead of creating a new one.
 - Store records as `./.codex/plans/{{timestamp}}-{{name}}.md` using `YYYY-MM-DDTHH-MM-SS` timestamps and a short kebab-case slug, for example `2026-05-20T04-30-00-fix-login.md`.
 - Keep records synchronized at key transitions: creation, milestone status changes, new blockers, material risk or decision changes, reviewer consultations, verification results, and final outcome.
+- Preserve the discussed design snapshot in the record, not only execution progress. The snapshot must capture the original problem model, non-negotiable requirements, chosen approach, important coverage or inventory counts, explicit deferrals, and verification strategy so future continuations can recover the reasoning after context compression.
 - Do not expose internal milestone structure, reviewer notes, or execution-record content to the user unless asked.
 - Mark the record `done` only when the top-level objective is complete and verified. Otherwise use `blocked`, `cancelled`, or `verified_with_risk` when those states are more accurate.
 
@@ -160,6 +161,16 @@ Use this exact template for every new execution record:
 ## Scope
 - in scope:
 - out of scope:
+
+## Design Snapshot
+- problem model:
+- non-negotiable requirements:
+- discussed approach:
+- coverage or inventory model:
+- current implementation stage:
+- explicit non-goals or deferred work:
+- risks and mitigations:
+- verification strategy:
 
 ## Milestones
 - [>] M1. ...
