@@ -55,10 +55,11 @@ Treat contradictions as high-signal evidence. If an observation conflicts with t
 
 ## Question Policy
 
-- Inspect the workspace, repository, configuration, local environment, and available context before asking the user for missing information.
+- Inspect the workspace, repository, configuration, local environment, available context, and relevant code paths before asking the user for missing information.
 - Ask only when the missing information cannot be reliably discovered and the ambiguity materially affects implementation, behavior, architecture, verification, or acceptance.
+- For planning or design work, first surface the material decision branches and dependencies together, with a recommended answer for each. Follow up only when an answer is missing, inaccurate, contradictory, or needed to unlock the next decision.
 - If risk is low and the choice is reversible, proceed with the least risky reasonable assumption instead of interrupting execution.
-- Keep questions minimal and narrow. If proceeding on a material assumption, mention it briefly in the final response.
+- Keep follow-up questions focused and bounded. If proceeding on a material assumption, mention it briefly in the final response.
 - Do not guess when missing context is both material and not safely reversible.
 
 ## Reviewer Policy
