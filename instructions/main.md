@@ -111,7 +111,7 @@ Use an execution record when the task is long-horizon, cross-turn, multi-milesto
 
 When you create a new non-trivial execution record, immediately call `get_goal`; if there is no active thread goal, call `create_goal` with a concise objective that points to the plan file. The goal objective should say to complete that execution record and read/update it before each continuation.
 
-The thread goal owns automatic continuation. The plan file owns detailed state: milestones, evidence, reviewer history, decisions, final outcome, and blockers. Before calling `update_goal`, update the plan file so its final status matches the goal status.
+The thread goal owns automatic continuation. The plan file owns durable task memory: the agreed approach snapshot, milestones, evidence, reviewer history, decisions, final outcome, and blockers. Before calling `update_goal`, update the plan file so its final status matches the goal status.
 
 Record rules:
 
@@ -120,7 +120,8 @@ Record rules:
 - If later work naturally continues the same end-state, extend the current record instead of creating a new one.
 - Store records as `./.codex/plans/{{timestamp}}-{{name}}.md` using `YYYY-MM-DDTHH-MM-SS` timestamps and a short kebab-case slug, for example `2026-05-20T04-30-00-fix-login.md`.
 - Keep records synchronized at key transitions: creation, milestone status changes, new blockers, material risk or decision changes, reviewer consultations, verification results, and final outcome.
-- Preserve the discussed design snapshot in the record, not only execution progress. The snapshot must capture the original problem model, non-negotiable requirements, chosen approach, important coverage or inventory counts, explicit deferrals, and verification strategy so future continuations can recover the reasoning after context compression.
+- Preserve the original agreed approach, not only execution progress. The approach snapshot should be concise free-form prose or bullets that capture the landing strategy, project model, important implementation details, ownership boundaries, non-goals, risks, and verification strategy needed to recover the reasoning after context compaction.
+- Do not force empty boilerplate into the record. If a detail is obvious or irrelevant, omit it; if a detail is needed to resume safely after compaction, write it down.
 - Do not expose internal milestone structure, reviewer notes, or execution-record content to the user unless asked.
 - Mark the record `done` only when the top-level objective is complete and verified. Otherwise use `blocked`, `cancelled`, or `verified_with_risk` when those states are more accurate.
 
@@ -136,10 +137,11 @@ Milestone rules:
 
 - Each milestone must be a bounded work package in service of the same top-level objective.
 - Each milestone must use exactly one TODO status marker.
-- Each milestone must specify objective, in scope, deliverable or evidence, verification required, and status note.
+- Each milestone should capture the milestone goal, expected evidence or verification, and the current note. Avoid repeating global scope unless it matters for that milestone.
 - Only one milestone may be `[>]` unless parallel work is explicitly justified.
+- For open-ended tasks, keep the `Reviewer continuation gate` milestone required by the Open-Ended Reviewer Loop and use the same lightweight milestone shape.
 
-Use this exact template for every new execution record:
+Use this template for every new execution record. Keep the headings stable, but write the body with the minimum detail needed for reliable continuation:
 
 ```md
 # Plan: {{timestamp}}-{{name}}
@@ -148,67 +150,43 @@ Use this exact template for every new execution record:
 - status: `in_progress|done|verified_with_risk|blocked|cancelled`
 - created_at: `{{timestamp}}`
 - updated_at: `{{timestamp}}`
+- thread_goal: `created|not_created|n/a`
 
-## Parent Objective
-- top-level user request:
-- intended workspace end-state:
+## Objective
+- user request:
+- intended end-state:
 
-## Goal
-- final workspace outcome to achieve:
+## Approach Snapshot
+Describe the agreed landing strategy, project model, important boundaries, key implementation details, non-goals, risks, and verification strategy needed to recover the original reasoning after context compaction.
 
-## Acceptance Criteria
-- what must be true for this objective to count as done:
-
-## Scope
-- in scope:
-- out of scope:
-
-## Design Snapshot
-- problem model:
-- non-negotiable requirements:
-- discussed approach:
-- coverage or inventory model:
-- current implementation stage:
-- explicit non-goals or deferred work:
-- risks and mitigations:
-- verification strategy:
+## Done Criteria
+- ...
 
 ## Milestones
 - [>] M1. ...
-  - objective:
-  - in scope:
-  - deliverable or evidence:
-  - verification required:
-  - status note:
+  - goal:
+  - evidence / verification:
+  - note:
 
 - [ ] M2. ...
-  - objective:
-  - in scope:
-  - deliverable or evidence:
-  - verification required:
-  - status note:
+  - goal:
+  - evidence / verification:
+  - note:
 
-## Reviewer Consultations
-- R1
-  - milestone:
-  - question or decision under review:
-  - consultation status:
+## Reviewer Log
+- R1:
+  - scope:
   - outcome:
 
-## Current Status
+## Current State
 - active milestone:
 - next action:
 - blockers:
 
-## Task-Local Decisions
-- task-local decisions, assumptions, and constraints needed to control execution
-- durable technical decisions belong in `docs/`
-
 ## Final Outcome
 - result:
-- verification summary:
+- verification:
 - remaining risk:
-- final status:
 ```
 
 ## Responsiveness
