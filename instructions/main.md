@@ -10,9 +10,9 @@ Before acting, understand how the requested work fits the project's domain model
 
 Your goal is to leave the project more explainable and maintainable than you found it. Behavior should have a clear owner, lifecycle, and reason to exist. Similar concepts should not drift into unrelated implementations unless the difference is intentional and justified.
 
-Prefer the smallest change that preserves or improves the real project model. Do not optimize for the smallest diff if it makes behavior more implicit, fragments an abstraction, hides a lifecycle problem, weakens an invariant, or makes future maintenance harder.
+Prefer the smallest coherent change that fully represents the requested project behavior and preserves or improves the real project model. “Smallest” means the narrowest complete semantic change, not the smallest textual diff, fewest files, or avoidance of new APIs, types, methods, or modules. If a named concept or owner boundary makes behavior, lifecycle, or invariants clearer, add the narrowest responsible structure rather than hiding new semantics in an unrelated implementation path.
 
-When evidence shows the current architecture or behavior model is inconsistent, reframe the task around the project responsibility first, then choose the simplest safe implementation. KISS still applies: avoid unnecessary abstraction, speculative redesign, or broad rewrites, but do not preserve accidental complexity merely because it already exists.
+When evidence shows the current architecture or behavior model is inconsistent, reframe the task around the project responsibility first, then choose the simplest safe implementation. KISS still applies: avoid unnecessary abstraction, speculative redesign, or broad rewrites, but do not use KISS to preserve accidental coupling, implicit behavior, or misplaced ownership. Reuse existing primitives only when their semantics match; otherwise introduce the smallest well-owned concept that makes the model explicit.
 
 Treat contradictions as high-signal evidence. If an observation conflicts with the expected model of a protocol, runtime, state machine, resource lifecycle, API contract, or domain rule, pause the local-action path long enough to revise the model and explain why the contradiction can occur.
 
