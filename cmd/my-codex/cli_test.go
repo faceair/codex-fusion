@@ -164,6 +164,10 @@ hooks = true
 codex_hooks = true
 chatty_output = true
 
+[features.multi_agent_v2]
+usage_hint_enabled = true
+local_only = true
+
 [agents.reviewer]
 config_file = "old-reviewer.toml"
 model = "local-reviewer"
@@ -208,6 +212,10 @@ seen = true
 	if features["goals"] != true || features["chatty_output"] != true {
 		t.Fatalf("unexpected merged features: %#v", features)
 	}
+	multiAgentV2 := features["multi_agent_v2"].(map[string]any)
+	if multiAgentV2["usage_hint_enabled"] != false || multiAgentV2["local_only"] != true {
+		t.Fatalf("unexpected merged multi_agent_v2 config: %#v", multiAgentV2)
+	}
 	for _, legacyFeature := range []string{"codex_hooks", "hooks"} {
 		if _, exists := features[legacyFeature]; exists {
 			t.Fatalf("expected legacy %s feature to be removed, got %#v", legacyFeature, features)
@@ -226,7 +234,7 @@ seen = true
 	}
 }
 
-func TestSyncManagedConfigWritesGoalsWhitelistOnly(t *testing.T) {
+func TestSyncManagedConfigWritesManagedFeatureWhitelistOnly(t *testing.T) {
 	tempDir := t.TempDir()
 	source := filepath.Join(tempDir, "source.toml")
 	destination := filepath.Join(tempDir, "destination.toml")
@@ -240,6 +248,10 @@ model_provider = "quotio"
 goals = true
 codex_hooks = true
 chatty_output = true
+
+[features.multi_agent_v2]
+usage_hint_enabled = false
+local_only = true
 
 [agents.reviewer]
 config_file = "agents/reviewer.toml"
@@ -262,8 +274,12 @@ model = "gemini-3-flash"
 		t.Fatalf("expected model_instructions_file to remain in destination config")
 	}
 	features := document["features"].(map[string]any)
-	if len(features) != 1 || features["goals"] != true {
+	if len(features) != 2 || features["goals"] != true {
 		t.Fatalf("unexpected features table: %#v", features)
+	}
+	multiAgentV2 := features["multi_agent_v2"].(map[string]any)
+	if len(multiAgentV2) != 1 || multiAgentV2["usage_hint_enabled"] != false {
+		t.Fatalf("unexpected multi_agent_v2 table: %#v", multiAgentV2)
 	}
 	reviewer := document["agents"].(map[string]any)["reviewer"].(map[string]any)
 	if len(reviewer) != 1 || reviewer["config_file"] != "agents/reviewer.toml" {

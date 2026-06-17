@@ -62,7 +62,7 @@ func runPull(options PullOptions, stdoutWriter, stderrWriter io.Writer) error {
 	fmt.Fprintf(stdoutWriter, "  - %s\n", filepath.Join(destRoot, "agents"))
 	fmt.Fprintf(stdoutWriter, "  - %s\n", filepath.Join(destRoot, "skills"))
 	fmt.Fprintf(stdoutWriter, "  - %s (synced from embedded release assets)\n", filepath.Join(destRoot, "instructions"))
-	fmt.Fprintf(stdoutWriter, "  - %s (repo-managed goals config merged in; other local config preserved)\n", filepath.Join(destRoot, "config.toml"))
+	fmt.Fprintf(stdoutWriter, "  - %s (repo-managed config whitelist merged in; other local config preserved)\n", filepath.Join(destRoot, "config.toml"))
 	fmt.Fprintf(stdoutWriter, "Cleaned legacy prompt and Stop hook files when present.\n")
 	_ = stderrWriter
 	return nil

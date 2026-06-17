@@ -49,6 +49,10 @@ goals = true
 codex_hooks = true
 chatty_output = true
 
+[features.multi_agent_v2]
+usage_hint_enabled = false
+local_only = true
+
 [agents.reviewer]
 config_file = "agents/reviewer.toml"
 model = "ignored"
@@ -73,12 +77,12 @@ model = "ignored"
 		t.Fatalf("read synced config.toml: %v", err)
 	}
 	configText := string(configContent)
-	for _, unexpected := range []string{"chatty_output", "codex_hooks", "model = \"ignored\""} {
+	for _, unexpected := range []string{"chatty_output", "codex_hooks", "local_only", "model = \"ignored\""} {
 		if strings.Contains(configText, unexpected) {
-			t.Fatalf("expected synced config.toml to keep goals whitelist only, found %q in:\n%s", unexpected, configText)
+			t.Fatalf("expected synced config.toml to keep managed whitelist only, found %q in:\n%s", unexpected, configText)
 		}
 	}
-	for _, expected := range []string{"model_instructions_file = \"instructions/main.md\"", "goals = true", "config_file = \"agents/reviewer.toml\""} {
+	for _, expected := range []string{"model_instructions_file = \"instructions/main.md\"", "goals = true", "usage_hint_enabled = false", "config_file = \"agents/reviewer.toml\""} {
 		if !strings.Contains(configText, expected) {
 			t.Fatalf("expected synced config.toml to include %q, got:\n%s", expected, configText)
 		}

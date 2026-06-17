@@ -3,5 +3,8 @@ model_instructions_file = "instructions/main.md"
 [features]
 goals = true
 
+[features.multi_agent_v2]
+usage_hint_enabled = false
+
 [agents.reviewer]
 config_file = "agents/reviewer.toml"

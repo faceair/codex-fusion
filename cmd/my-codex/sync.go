@@ -88,7 +88,7 @@ func runSync(options SyncOptions, stdoutWriter, stderrWriter io.Writer) error {
 	fmt.Fprintf(stdoutWriter, "  - %s\n", filepath.Join(repoRoot, "agents"))
 	fmt.Fprintf(stdoutWriter, "  - %s\n", filepath.Join(repoRoot, "skills"))
 	fmt.Fprintf(stdoutWriter, "  - %s (incremental sync when source exists; existing destination files are preserved)\n", filepath.Join(repoRoot, "instructions"))
-	fmt.Fprintf(stdoutWriter, "  - %s (whitelist only: model_instructions_file, [features].goals, [agents.reviewer].config_file)\n", filepath.Join(repoRoot, "config.toml"))
+	fmt.Fprintf(stdoutWriter, "  - %s (whitelist only: model_instructions_file, [features].goals, [features.multi_agent_v2].usage_hint_enabled, [agents.reviewer].config_file)\n", filepath.Join(repoRoot, "config.toml"))
 	fmt.Fprintln(stdoutWriter, "Committed and pushed with message:")
 	fmt.Fprintln(stdoutWriter, commitMessage)
 	_ = stderrWriter
