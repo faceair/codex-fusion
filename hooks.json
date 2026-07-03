@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Proactive multi-agent delegation is active. Use sub-agents (sidekick for execution/discovery, reviewer for read-only risk review) as the default path for non-trivial work; do not wait for an explicit user request. Reuse existing sub-agent threads instead of spawning new ones for the same workflow.\"}}'",
+            "statusMessage": "Loading proactive delegation authorization"
+          }
+        ]
+      }
+    ]
+  }
+}

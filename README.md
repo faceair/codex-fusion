@@ -15,12 +15,13 @@
 ```
 从 https://github.com/faceair/codex-fusion 安装配置到 ~/.codex：
 1. 把 config.toml 的内容合并进 ~/.codex/config.toml（保留用户已有的其他配置，key 冲突时用本仓库的覆盖）
-2. 把 agents/ 目录复制到 ~/.codex/agents/，覆盖同名文件
-3. 把 instructions/ 目录复制到 ~/.codex/instructions/，覆盖同名文件
-4. 列出最终生效的文件路径
+2. 把 hooks.json 复制到 ~/.codex/hooks.json（如果用户已有 hooks.json，把本仓库的 SessionStart hook 合并进去）
+3. 把 agents/ 目录复制到 ~/.codex/agents/，覆盖同名文件
+4. 把 instructions/ 目录复制到 ~/.codex/instructions/，覆盖同名文件
+5. 列出最终生效的文件路径
 ```
 
-装完之后重启 Codex 生效。
+装完之后重启 Codex 生效。首次启动时在 CLI 里运行 `/hooks` review 并 trust 新增的 SessionStart hook。
 
 ## 它解决什么
 
@@ -33,6 +34,8 @@
 - 上下文压缩后丢掉之前的工作记忆。Codex 的 goals 和 thread tools 能找回目标和历史。
 
 ## 怎么工作
+
+Codex 默认不会主动开 subagent——即使打开了 `multi_agent_v2`，默认模式仍是 `ExplicitRequestOnly`（除非用户或 AGENTS.md 明确要求才 spawn）。codex-fusion 通过 `SessionStart` hook 在每次 session 启动、清空、压缩后注入一段 developer 授权，让 fusion 把主动委派当作非平凡任务的默认路径，不用等用户明确要求。注入时机是 `startup|clear|compact`（`resume` 不注入，因为上下文里已有）。
 
 两个并行 agent，各自有独立的工具和缓存上下文。主 agent 决定哪些活交给 sidekick，哪些自己做：
 
