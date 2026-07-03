@@ -4,7 +4,12 @@ model_instructions_file = "instructions/fusion.md"
 goals = true
 
 [features.multi_agent_v2]
-enabled = true
+enabled = false
+usage_hint_text = """
+Proactive multi-agent delegation is active. You are the primary/root agent and are authorized to spawn sub-agents (sidekick for execution/discovery, reviewer for read-only risk review) as the default path for non-trivial work; do not wait for an explicit user request. Reuse existing sub-agent threads instead of spawning new ones for the same workflow. Sub-agents are leaf agents and must not spawn their own sub-agents."""
+
+[agents]
+max_depth = 1
 
 [agents.sidekick]
 config_file = "agents/sidekick.toml"

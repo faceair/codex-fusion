@@ -15,13 +15,12 @@ Copy the [github.com/faceair/codex-fusion](https://github.com/faceair/codex-fusi
 ```
 Install configuration from https://github.com/faceair/codex-fusion to ~/.codex:
 1. Merge config.toml into ~/.codex/config.toml (preserve the user's other config; on key conflict, this repo's value wins)
-2. Copy hooks.json to ~/.codex/hooks.json (if the user already has hooks.json, merge this repo's SessionStart hook into it)
-3. Copy the agents/ directory to ~/.codex/agents/, overwriting same-named files
-4. Copy the instructions/ directory to ~/.codex/instructions/, overwriting same-named files
-5. List the final effective file paths
+2. Copy the agents/ directory to ~/.codex/agents/, overwriting same-named files
+3. Copy the instructions/ directory to ~/.codex/instructions/, overwriting same-named files
+4. List the final effective file paths
 ```
 
-Restart Codex after installation for the configuration to take effect. On first launch, run `/hooks` in the CLI to review and trust the new SessionStart hook.
+Restart Codex after installation for the configuration to take effect.
 
 ## What it solves
 
@@ -35,7 +34,9 @@ A few common problems when using a single-model agent for engineering work:
 
 ## How it works
 
-Codex does not proactively spawn subagents by default — even with `multi_agent_v2` enabled, the default mode is `ExplicitRequestOnly` (spawning only happens when the user or AGENTS.md explicitly asks). codex-fusion uses a `SessionStart` hook to inject a developer authorization after every session start, clear, and compaction, so fusion treats proactive delegation as the default path for non-trivial work without waiting for an explicit request. Injection fires on `startup|clear|compact` (not `resume`, since the context already carries it).
+Codex does not proactively spawn subagents by default — even with multi-agent enabled, the default mode is `ExplicitRequestOnly` (spawning only happens when the user or AGENTS.md explicitly asks). codex-fusion uses `usage_hint_text` config to inject a developer authorization so fusion treats proactive delegation as the default path for non-trivial work without waiting for an explicit request. `usage_hint_text` is only injected into the primary agent, not subagents.
+
+A system-level hard constraint is enforced via `agents.max_depth = 1` + multi-agent v1 mode: the root session (depth 0) can spawn subagents (depth 1), but subagents cannot spawn further — the v2 spawn handler ignores `max_depth` by design, while v1 enforces it and returns `"Agent depth limit reached"`.
 
 Two parallel agents, each with its own tools and cached context. The main agent decides which work to give the sidekick and which to do itself:
 
