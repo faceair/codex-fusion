@@ -1,128 +1,120 @@
-# my-codex
+# codex-fusion
 
 [中文](./README.md)
 
-`my-codex` is a Codex workflow configuration designed for long-running, high-context engineering work.
+A Codex CLI configuration. Expensive model makes decisions, cheap model does the work, a third model reviews independently.
 
-The goal is not to make the model more talkative. The goal is to make the agent more reliable when a task is long, ambiguous, multi-step, and expensive to get wrong.
+If you're using OpenCode instead of Codex, see [opencode-fusion](https://github.com/faceair/opencode-fusion).
 
-## Why this exists
+Inspired by Cognition's [Devin Fusion](https://cognition.com/blog/devin-fusion) — the sidekick architecture comes from them.
 
-Default chat-style agents tend to fail in a few predictable ways:
+## Installation
 
-- state drifts in long sessions
-- complex decisions are made by a single model with no review
-- the agent stops too early and waits for another “continue”
-- open-ended work either converges too early or keeps expanding without direction
+Copy the [github.com/faceair/codex-fusion](https://github.com/faceair/codex-fusion) repo's configuration files into `~/.codex`. You can clone and copy manually, or send this prompt to Codex and let it install for you:
 
-This workflow is built around those problems.
-
-## Core ideas
-
-### 1. Plan files as persistent state
-
-The agent is expected to maintain plan files and execution records inside the workspace.
-
-The point is not just to keep a TODO list. The point is to move critical task state out of the live conversation and into files that survive compaction:
-
-- current objective
-- verified facts
-- active milestone
-- next action
-- blockers and risks
-
-After compaction, the agent can reload that state from disk and continue from the same execution line instead of reconstructing everything from memory.
-
-### 2. GPT for execution, Gemini 3 for review
-
-This workflow separates execution from review.
-
-- GPT is used for execution:
-  - reading code
-  - editing files
-  - running commands
-  - pushing implementation forward
-- Gemini 3 is used as reviewer:
-  - reassessing the current framing
-  - surfacing hidden risks
-  - comparing technical options
-  - reviewing difficult decisions before execution locks in
-
-The result is a more reliable split: execution stays steady, while major decisions get a second opinion from a model with stronger breadth and better top-down judgment.
-
-### 3. Goal continuation keeps milestones moving until the work is actually done
-
-This workflow uses Codex native thread goals to keep long-running work moving.
-
-When the agent creates a plan file for a non-trivial task, it also creates a thread goal that points to that plan. The plan file stores milestones, evidence, blockers, and reviewer history; the goal tells Codex to keep continuing the thread while the objective remains active.
-
-That changes the default behavior from “finish one step and stop” to “reload the plan, keep moving, and only mark the goal complete after the plan is closed and verified”.
-
-### 4. Reviewer loop for open-ended work
-
-Some of the most important engineering tasks are not linear:
-
-- performance work
-- ambiguous root-cause debugging
-- architectural cleanup
-- exploratory technical research
-
-For those tasks, this workflow supports a reviewer loop:
-
-1. collect evidence
-2. ask the reviewer what is worth doing next
-3. execute the next step
-4. loop back with updated evidence
-
-This helps exploratory work converge instead of stalling or drifting.
-
-## What this is good for
-
-This workflow is a good fit for:
-
-- long-running tasks
-- complex debugging
-- multi-stage refactors
-- technical decisions that benefit from review
-- open-ended tasks that may run for hours
-
-If you want a lightweight assistant for quick one-off chats, this is probably not the right configuration.
-
-## Getting started
-
-### Pull the latest workflow to your local Codex
-
-#### macOS / Linux
-
-```bash
-tmp_dir="$(mktemp -d)"
-os="$(uname -s)"
-arch="$(uname -m)"
-case "$os/$arch" in
-  Darwin/arm64) asset="my-codex_darwin_arm64.tar.gz" ;;
-  Darwin/x86_64) asset="my-codex_darwin_amd64.tar.gz" ;;
-  Linux/x86_64) asset="my-codex_linux_amd64.tar.gz" ;;
-  Linux/aarch64|Linux/arm64) asset="my-codex_linux_arm64.tar.gz" ;;
-  *) echo "unsupported arch: $arch" >&2; exit 1 ;;
-esac
-curl -fsSL -o "$tmp_dir/$asset" "https://github.com/faceair/my-codex/releases/latest/download/$asset"
-tar -xzf "$tmp_dir/$asset" -C "$tmp_dir"
-"$tmp_dir/my-codex" pull
-rm -rf "$tmp_dir"
+```
+Install configuration from https://github.com/faceair/codex-fusion to ~/.codex:
+1. Merge config.toml into ~/.codex/config.toml (preserve the user's other config; on key conflict, this repo's value wins)
+2. Copy the agents/ directory to ~/.codex/agents/, overwriting same-named files
+3. Copy the instructions/ directory to ~/.codex/instructions/, overwriting same-named files
+4. List the final effective file paths
 ```
 
-#### Windows PowerShell
+Restart Codex after installation for the configuration to take effect.
 
-```powershell
-$TmpDir = Join-Path $env:TEMP ([guid]::NewGuid().ToString())
-New-Item -ItemType Directory -Path $TmpDir | Out-Null
-$Arch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "amd64" }
-$Asset = "my-codex_windows_$Arch.zip"
-Invoke-WebRequest -Uri "https://github.com/faceair/my-codex/releases/latest/download/$Asset" -OutFile (Join-Path $TmpDir $Asset)
-Expand-Archive -Path (Join-Path $TmpDir $Asset) -DestinationPath $TmpDir -Force
-& (Join-Path $TmpDir 'my-codex.exe') pull
-Remove-Item -Recurse -Force $TmpDir
+## What it solves
+
+A few common problems when using a single-model agent for engineering work:
+
+- Frontier model time gets spent running tests and reading files — wasting money. Switch everything to a cheap model and decision quality drops. Cognition's data shows the sidekick architecture cuts cost 35% while maintaining frontier performance; delegating test suites to sidekick saves 62%, mechanical removal tasks save 32%.
+- One model writes the code, reviews the code, and approves the code. No independent perspective, edge cases get missed.
+- "Ask another model" tools lose context cache on every cross-model call, and you pay the full prompt cost again. On a long task, this adds up fast.
+- Long tasks stall mid-way waiting for you to type "continue". Codex's native goals auto-continue until the objective is done or a concrete blocker stops progress.
+- Context compaction wipes working memory. Codex's goals and thread tools recover the objective and prior history.
+
+## How it works
+
+Two parallel agents, each with its own tools and cached context. The main agent decides which work to give the sidekick and which to do itself:
+
+![Sidekick architecture: a frontier main agent and a small sidekick agent running in parallel, each with its own cached context](https://cognition.com/_next/static/media/sidekick-diagram.153unbtaywtzg.png)
+
+codex-fusion adds a third read-only agent (reviewer) for independent review on top of this. Three agents, each with its own model and context:
+
 ```
+┌─────────────────────────────────────────────────┐
+│  fusion (expensive model)                       │
+│  owns: decisions, final review                  │
+│                                                 │
+│  delegates via spawn_agent ─────────┐           │
+│  consults via spawn_agent ──────┐   │           │
+│                                 ▼   ▼           │
+│                     ┌──────────────┐ ┌─────────┐│
+│                     │ reviewer     │ │ sidekick││
+│                     │ (read-only)  │ │ (cheap) ││
+│                     │ risk review   │ │ execute ││
+│                     │ + adversarial │ │ discover││
+│                     │               │ │ verify  ││
+│                     └──────────────┘ └─────────┘│
+└─────────────────────────────────────────────────┘
+```
+
+**fusion** is the main agent you talk to, defaulting to `glm-5.2`. It takes minimal actions — reads only what's necessary, makes the calls that need judgment, and delegates the rest by default. It owns understanding requirements, making decisions, and controlling delivery quality, doing the final review itself rather than letting sidekick do it.
+
+**sidekick** defaults to `gpt-5.5` (reasoning effort `medium`). It handles the mechanical load: reading code, editing files, running tests, diagnosing failures. It returns locatable evidence and observations to fusion, not conclusions.
+
+**reviewer** defaults to `gemini-3.5-flash`, read-only. It reviews high-risk changes before implementation and does independent code review before delivery. For changes touching untrusted input, persistence, or concurrency, it walks each input path from an attacker's perspective.
+
+fusion creates subagents with `spawn_agent`, gets back an `agent_id`, and continues the conversation with `send_input` — no need to start fresh each time. The same sidekick and reviewer carry through an entire workflow, accumulating context.
+
+### When to delegate to sidekick
+
+This is not a single-prompt router that picks one model for the whole task. Fusion decides per-step which agent should do what:
+
+- **Hand off slow verification.** Sidekick runs the test suite while fusion moves on to the next decision.
+- **Take back judgment-heavy work.** When sidekick hits a decision point — API shape, error semantics, cross-module boundary — fusion takes it back instead of letting the cheap model guess.
+- **Send targeted follow-ups.** Sidekick found something unexpected? Fusion sends a focused question back instead of re-reading the code itself.
+- **Don't delegate when judgment is the deliverable.** Hard features that need subtle intent (e.g. cross-team search UI decisions) lose intent when delegated to a cheap model — the result comes out wrong.
+
+### When to consult reviewer
+
+Two scenarios:
+
+**Before implementation**, when the change is high-risk: shared API contracts, cross-subsystem boundaries, lifecycle/concurrency/persistence semantics, security/credentials/privacy, production-critical paths, the same approach failing repeatedly, confidence still low after local verification.
+
+**Before delivery**, for any non-trivial change, reviewer does a code review pass: correctness, completeness, regressions, architectural coherence. For high-risk changes, it also performs adversarial review — probing the diff from an attacker's perspective:
+
+- *What if this input is 50MB instead of 5KB?*
+- *What if a timestamp comes from the future?*
+- *What if a background worker gets killed mid-task and retries?*
+- *What if two users submit the same request simultaneously?*
+
+Each finding traces the full path: entry point → processing → storage → output → side effects.
+
+### Reviewer loop for open-ended work
+
+Some tasks can't be fully planned upfront: performance optimization, ambiguous root-cause investigation, architecture cleanup. These use a reviewer loop:
+
+1. Complete a todo, bring evidence to reviewer
+2. Reviewer decides the next step: `continue` (same direction), `pivot` (change direction), `stop` (no meaningful next step), `blocked` (missing evidence or prerequisite)
+3. Execute the next step, loop back to reviewer
+4. Until reviewer says `stop` and the work is verified, or `blocked` with a concrete blocker
+
+### First principles
+
+When a bug fix, architecture decision, or approach choice is on the table, agents reason from fundamental facts and constraints instead of reaching for the closest pattern in training data.
+
+- *Symptom fix:* "The feed is broken, let me fix the fetcher." The same bug comes back next week.
+- *Root cause fix:* "The traffic routing layer has a latent failure mode. The fetcher was just the first victim. Fix the routing." The bug class is eliminated.
+
+## Good fit for
+
+- Long tasks that need to keep running without stalling
+- Complex debugging where the obvious fix treats the symptom
+- Multi-stage refactors with judgment-heavy decisions
+- High-risk changes that need independent review before shipping
+- Open-ended work where the next step can't be planned upfront and a reviewer loop helps converge
+
+If you just want a lightweight chat assistant, this is probably overkill.
 
 ## License
 

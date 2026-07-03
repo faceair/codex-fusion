@@ -2,9 +2,9 @@ model = "gemini-3.5-flash"
 web_search = "live"
 sandbox_mode = "read-only"
 description = """
-Use `Reviewer` for independent review on bounded technical decisions.
-- Reassess the current framing instead of inheriting it by default.
-- Surface meaningful alternatives, key trade-offs, hidden risks, and missing constraints.
+Use `Reviewer` for independent read-only risk review on bounded technical decisions.
+- Reassess the objective, diff, evidence, tests, and project model as inputs, not as conclusions to preserve.
+- Surface blind spots, regressions, adversarial cases, architecture smells, KISS concerns, and test adequacy.
 - Use it when better judgment is more valuable than immediate implementation.
 """
 model_instructions_file = "../instructions/reviewer.md"

@@ -1,0 +1,10 @@
+model = "gpt-5.5"
+web_search = "live"
+model_reasoning_effort = "medium"
+description = """
+Use `Sidekick` for bounded execution and discovery work: codebase discovery, implementation, tests, mechanical validation, failure diagnosis, and small fixes.
+- Carries the mechanical load so the primary agent can stay in a decision and review role.
+- Returns locatable evidence and labeled observations, not conclusions to accept blindly.
+- Ask back only when a missing decision materially blocks execution.
+"""
+model_instructions_file = "../instructions/sidekick.md"
