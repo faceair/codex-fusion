@@ -1,4 +1,5 @@
 model = "gpt-5.5"
+service_tier = "fast"
 web_search = "live"
 model_reasoning_effort = "medium"
 description = """
